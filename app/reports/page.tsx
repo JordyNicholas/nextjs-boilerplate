@@ -1,16 +1,18 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { ApiClientError } from '@/lib/api/client';
 import { createReport, listReports } from '@/lib/api/reports';
 import type { PaginatedReports, ReportItem } from '@/lib/api/types';
 import { useAuth } from '@/lib/auth/AuthProvider';
+import { RequireAuth } from '@/components/auth/RequireAuth';
 import { Alert } from '@/components/ui/Alert';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 const statusTone = {
   PENDING: 'warn',
@@ -20,15 +22,22 @@ const statusTone = {
 } as const;
 
 export default function ReportsPage() {
-  const router = useRouter();
-  const { accessToken, isAuthenticated, isLoading } = useAuth();
+  return (
+    <RequireAuth>
+      <ReportsContent />
+    </RequireAuth>
+  );
+}
+
+function ReportsContent() {
+  const { accessToken } = useAuth();
   const [reports, setReports] = useState<PaginatedReports | null>(null);
   const [title, setTitle] = useState('');
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
-  async function loadReports(currentPage = page) {
+  const loadReports = useCallback(async (currentPage: number) => {
     if (!accessToken) return;
     setError(null);
     try {
@@ -37,16 +46,25 @@ export default function ReportsPage() {
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'Failed to load reports');
     }
-  }
+  }, [accessToken]);
 
   useEffect(() => {
-    if (isLoading) return;
-    if (!isAuthenticated || !accessToken) {
-      router.replace('/login');
+    if (!accessToken) return;
+    const initial = window.setTimeout(() => void loadReports(page), 0);
+    return () => window.clearTimeout(initial);
+  }, [accessToken, loadReports, page]);
+
+  useEffect(() => {
+    if (!accessToken || !reports?.data.some((report) => report.status === 'PENDING' || report.status === 'PROCESSING')) {
       return;
     }
-    void loadReports(page);
-  }, [accessToken, isAuthenticated, isLoading, page, router]);
+
+    const interval = window.setInterval(() => {
+      void loadReports(page);
+    }, 2_000);
+
+    return () => window.clearInterval(interval);
+  }, [accessToken, loadReports, page, reports?.data]);
 
   async function handleCreate(event: FormEvent) {
     event.preventDefault();
@@ -55,6 +73,7 @@ export default function ReportsPage() {
     setError(null);
     try {
       await createReport(accessToken, title);
+      toast.success('Report queued for processing');
       setTitle('');
       setPage(1);
       await loadReports(1);
@@ -63,10 +82,6 @@ export default function ReportsPage() {
     } finally {
       setCreating(false);
     }
-  }
-
-  if (isLoading) {
-    return <p className="text-sm text-slate-500">Loading session…</p>;
   }
 
   return (
@@ -103,7 +118,10 @@ export default function ReportsPage() {
               </article>
             ))
           ) : (
-            <p className="text-sm text-slate-500">No reports yet.</p>
+            <EmptyState
+              title="No reports yet"
+              description="Create your first report to exercise the queue and worker flow."
+            />
           )}
         </div>
 

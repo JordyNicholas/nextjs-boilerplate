@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { ApiClientError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { Alert } from '@/components/ui/Alert';
@@ -24,6 +25,7 @@ export default function LoginPage() {
     setError(null);
     try {
       await login(email, password);
+      toast.success('Signed in successfully');
       router.push('/profile');
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'Login failed');
@@ -36,6 +38,7 @@ export default function LoginPage() {
     setRefreshMessage(null);
     const ok = await refreshSession();
     setRefreshMessage(ok ? 'Session refreshed successfully.' : 'No valid refresh token found.');
+    if (ok) toast.success('Session refreshed');
   }
 
   return (

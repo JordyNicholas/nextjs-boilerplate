@@ -2,9 +2,10 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { ApiClientError } from '@/lib/api/client';
 import { register } from '@/lib/api/users';
-import { DEFAULT_TENANT_ID } from '@/lib/constants';
+import { useTenant } from '@/lib/tenant/TenantProvider';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -12,6 +13,7 @@ import { Input } from '@/components/ui/Input';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { tenantId } = useTenant();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,8 +27,9 @@ export default function RegisterPage() {
     setError(null);
     setSuccess(null);
     try {
-      const user = await register({ name, email, password }, DEFAULT_TENANT_ID);
+      const user = await register({ name, email, password }, tenantId);
       setSuccess(`Account created for ${user.email}. You can sign in now.`);
+      toast.success('Account created');
       setTimeout(() => router.push('/login'), 1200);
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'Registration failed');

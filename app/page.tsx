@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getHealth, getMetrics, getReady } from '@/lib/api/system';
 import type { HealthResponse, MetricsResponse, ReadyResponse } from '@/lib/api/types';
 import { ApiClientError } from '@/lib/api/client';
@@ -16,10 +16,13 @@ export default function StatusPage() {
   const [metrics, setMetrics] = useState<MetricsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [latencyMs, setLatencyMs] = useState<number | null>(null);
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
-  async function loadStatus() {
+  const loadStatus = useCallback(async () => {
     setLoading(true);
     setError(null);
+    const startedAt = performance.now();
     try {
       const [healthRes, readyRes, metricsRes] = await Promise.all([
         getHealth(),
@@ -29,16 +32,23 @@ export default function StatusPage() {
       setHealth(healthRes);
       setReady(readyRes);
       setMetrics(metricsRes);
+      setLatencyMs(Math.round(performance.now() - startedAt));
+      setLastChecked(new Date());
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'Failed to reach API');
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    void loadStatus();
-  }, []);
+    const initial = window.setTimeout(() => void loadStatus(), 0);
+    const interval = window.setInterval(() => void loadStatus(), 30_000);
+    return () => {
+      window.clearTimeout(initial);
+      window.clearInterval(interval);
+    };
+  }, [loadStatus]);
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -48,9 +58,19 @@ export default function StatusPage() {
         className="lg:col-span-2"
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-slate-600">
-            Base URL: <code className="rounded bg-slate-100 px-2 py-1 text-xs">{API_URL}</code>
-          </p>
+          <div className="space-y-1 text-sm text-slate-600 dark:text-slate-300">
+            <p>
+              Base URL:{' '}
+              <code className="rounded bg-slate-100 px-2 py-1 text-xs dark:bg-slate-800">
+                {API_URL}
+              </code>
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Auto-refreshes every 30s
+              {latencyMs !== null ? ` · ${latencyMs}ms` : ''}
+              {lastChecked ? ` · ${lastChecked.toLocaleTimeString()}` : ''}
+            </p>
+          </div>
           <Button onClick={() => void loadStatus()} disabled={loading}>
             {loading ? 'Refreshing…' : 'Refresh status'}
           </Button>

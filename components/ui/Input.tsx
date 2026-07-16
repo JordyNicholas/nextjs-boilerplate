@@ -10,11 +10,11 @@ export function Input({ label, error, id, className = '', ...props }: InputProps
 
   return (
     <label htmlFor={inputId} className="flex w-full flex-col gap-1.5">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</span>
       <input
         id={inputId}
         className={[
-          'w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900',
+          'w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100',
           'placeholder:text-slate-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20',
           error ? 'border-rose-400' : '',
           className,

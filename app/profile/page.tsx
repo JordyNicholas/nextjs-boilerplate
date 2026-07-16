@@ -6,22 +6,28 @@ import { ApiClientError } from '@/lib/api/client';
 import { getProfile } from '@/lib/api/users';
 import type { ProfileResponse } from '@/lib/api/types';
 import { useAuth } from '@/lib/auth/AuthProvider';
+import { RequireAuth } from '@/components/auth/RequireAuth';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { LoadingState } from '@/components/ui/LoadingState';
 
 export default function ProfilePage() {
+  return (
+    <RequireAuth>
+      <ProfileContent />
+    </RequireAuth>
+  );
+}
+
+function ProfileContent() {
   const router = useRouter();
-  const { accessToken, isAuthenticated, isLoading } = useAuth();
+  const { accessToken } = useAuth();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isLoading) return;
-    if (!isAuthenticated || !accessToken) {
-      router.replace('/login');
-      return;
-    }
+    if (!accessToken) return;
 
     void (async () => {
       try {
@@ -31,11 +37,7 @@ export default function ProfilePage() {
         setError(err instanceof ApiClientError ? err.message : 'Failed to load profile');
       }
     })();
-  }, [accessToken, isAuthenticated, isLoading, router]);
-
-  if (isLoading) {
-    return <p className="text-sm text-slate-500">Loading session…</p>;
-  }
+  }, [accessToken]);
 
   return (
     <div className="mx-auto max-w-lg">
@@ -60,9 +62,7 @@ export default function ProfilePage() {
               <dd className="mt-1 break-all font-mono text-sm">{profile.id}</dd>
             </div>
           </dl>
-        ) : !error ? (
-          <p className="text-sm text-slate-500">Loading profile…</p>
-        ) : null}
+        ) : !error ? <LoadingState label="Loading profile…" /> : null}
         <div className="mt-6">
           <Button variant="secondary" onClick={() => router.push('/reports')}>
             Go to reports

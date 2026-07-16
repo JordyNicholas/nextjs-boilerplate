@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import { login as apiLogin, logout as apiLogout, refresh as apiRefresh } from '@/lib/api/auth';
-import { DEFAULT_TENANT_ID } from '@/lib/constants';
+import { useTenant } from '@/lib/tenant/TenantProvider';
 import {
   clearTokens,
   getAccessToken,
@@ -33,19 +33,35 @@ type AuthContextValue = AuthState & {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { tenantId } = useTenant();
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setAccessToken(getAccessToken());
-    setIsLoading(false);
+    queueMicrotask(() => {
+      setAccessToken(getAccessToken());
+      setIsLoading(false);
+    });
+
+    const handleUpdated = (event: Event) => {
+      const detail = (event as CustomEvent<{ accessToken: string }>).detail;
+      setAccessToken(detail.accessToken);
+    };
+    const handleCleared = () => setAccessToken(null);
+
+    window.addEventListener('auth:updated', handleUpdated);
+    window.addEventListener('auth:cleared', handleCleared);
+    return () => {
+      window.removeEventListener('auth:updated', handleUpdated);
+      window.removeEventListener('auth:cleared', handleCleared);
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const result = await apiLogin(email, password, DEFAULT_TENANT_ID);
+    const result = await apiLogin(email, password, tenantId);
     setTokens(result.accessToken, result.refreshToken);
     setAccessToken(result.accessToken);
-  }, []);
+  }, [tenantId]);
 
   const logout = useCallback(async () => {
     const token = getAccessToken();
