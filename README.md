@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Next.js Boilerplate — TS Monolith Console
 
-## Getting Started
+A clean, mobile-friendly frontend for the [ts-monolith](https://github.com/JordyNicholas/ts-monolith) API.
 
-First, run the development server:
+## Features
+
+- **Status** — `GET /health`, `GET /ready`, `GET /metrics`
+- **Auth** — login, refresh, logout (`/auth/*`)
+- **Users** — register, profile (`/users/*`)
+- **Reports** — create + paginated list (`/reports/*`)
+- Responsive layout with horizontal nav on mobile
+- Typed API client layer
+- JWT storage in `localStorage` (swap for httpOnly cookies in production)
+
+## Quickstart
+
+### 1. Start the monolith API
 
 ```bash
+# In ts-monolith repo
+docker compose up -d
+npm run db:migrate && npm run db:seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+API runs at `http://localhost:3333`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2. Configure the frontend
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cp .env.example .env.local
+```
 
-## Learn More
+### 3. Run Next.js
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm install
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open `http://localhost:3000`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Pages
 
-## Deploy on Vercel
+| Route | API consumed |
+|-------|----------------|
+| `/` | Health, readiness, metrics |
+| `/register` | `POST /users/` |
+| `/login` | `POST /auth/login`, `POST /auth/refresh` |
+| `/profile` | `GET /users/me` |
+| `/reports` | `GET /reports/`, `POST /reports/` |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Logout is available from the header when authenticated (`POST /auth/logout`).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project structure
+
+```
+app/              # Routes (App Router)
+components/       # UI + layout
+lib/
+  api/            # API client per domain
+  auth/           # Token storage + React context
+```
+
+## Environment variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `NEXT_PUBLIC_API_URL` | `http://localhost:3333` | Monolith base URL |
+| `NEXT_PUBLIC_DEFAULT_TENANT_ID` | seeded UUID | Sent as `x-tenant-id` on register/login |
+
+## Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Development server |
+| `npm run build` | Production build |
+| `npm start` | Run production build |
+| `npm run lint` | ESLint |
+
+## Pairing with ts-monolith
+
+Ensure the monolith `.env` has `CORS_ORIGIN=*` (default) or includes `http://localhost:3000`.
+
+For production, point `NEXT_PUBLIC_API_URL` at your deployed API and tighten CORS on the backend.
