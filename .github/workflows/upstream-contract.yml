@@ -1,0 +1,25 @@
+name: Upstream API contract
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 9 * * 1'
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Sync contract from ts-monolith main
+        env:
+          OPENAPI_SOURCE: https://raw.githubusercontent.com/JordyNicholas/ts-monolith/main/openapi/openapi.json
+        run: npm run api:sync
+      - name: Regenerate client types
+        run: npm run api:generate
+      - name: Verify this repository tracks the upstream contract
+        run: git diff --exit-code -- openapi/ts-monolith.json lib/api/generated.ts

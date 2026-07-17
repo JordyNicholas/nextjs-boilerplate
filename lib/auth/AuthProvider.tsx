@@ -9,7 +9,16 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { login as apiLogin, logout as apiLogout, refresh as apiRefresh } from '@/lib/api/auth';
+import {
+  checkBffSession,
+  login as apiLogin,
+  loginWithBff,
+  logout as apiLogout,
+  logoutBffSession,
+  refresh as apiRefresh,
+  refreshBffSession,
+} from '@/lib/api/auth';
+import { AUTH_MODE } from '@/lib/constants';
 import { useTenant } from '@/lib/tenant/TenantProvider';
 import {
   clearTokens,
@@ -31,6 +40,7 @@ type AuthContextValue = AuthState & {
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+const BFF_SESSION = 'cookie-session';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { tenantId } = useTenant();
@@ -38,6 +48,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (AUTH_MODE === 'bff') {
+      void checkBffSession()
+        .then(() => setAccessToken(BFF_SESSION))
+        .catch(() => setAccessToken(null))
+        .finally(() => setIsLoading(false));
+      return;
+    }
+
     queueMicrotask(() => {
       setAccessToken(getAccessToken());
       setIsLoading(false);
@@ -58,12 +76,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
+    if (AUTH_MODE === 'bff') {
+      await loginWithBff(email, password, tenantId);
+      setAccessToken(BFF_SESSION);
+      return;
+    }
+
     const result = await apiLogin(email, password, tenantId);
     setTokens(result.accessToken, result.refreshToken);
     setAccessToken(result.accessToken);
   }, [tenantId]);
 
   const logout = useCallback(async () => {
+    if (AUTH_MODE === 'bff') {
+      try {
+        await logoutBffSession();
+      } finally {
+        setAccessToken(null);
+      }
+      return;
+    }
+
     const token = getAccessToken();
     const refreshToken = getRefreshToken();
     if (token) {
@@ -78,6 +111,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshSession = useCallback(async () => {
+    if (AUTH_MODE === 'bff') {
+      try {
+        await refreshBffSession();
+        setAccessToken(BFF_SESSION);
+        return true;
+      } catch {
+        setAccessToken(null);
+        return false;
+      }
+    }
+
     const refreshToken = getRefreshToken();
     if (!refreshToken) return false;
     try {

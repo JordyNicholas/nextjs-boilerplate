@@ -23,3 +23,29 @@ export function logout(accessToken: string, refreshToken?: string) {
     body: refreshToken ? { refreshToken } : {},
   });
 }
+
+export function loginWithBff(email: string, password: string, tenantId: string) {
+  return apiFetch<{ user: LoginResponse['user'] }>('/auth/login', {
+    method: 'POST',
+    body: { email, password },
+    tenantId,
+  });
+}
+
+export function refreshBffSession() {
+  return apiFetch<{ ok: true }>('/auth/refresh', {
+    method: 'POST',
+  });
+}
+
+export function logoutBffSession() {
+  return apiFetch<void>('/auth/logout', {
+    method: 'POST',
+  });
+}
+
+export function checkBffSession() {
+  return apiFetch('/users/me', {
+    retryOnUnauthorized: false,
+  });
+}

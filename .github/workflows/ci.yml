@@ -16,8 +16,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
       - name: Verify generated API contract types
         run: npm run api:check
       - run: npm run typecheck
       - run: npm run lint
+      - run: npm test
       - run: npm run build

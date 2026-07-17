@@ -1,4 +1,4 @@
-import { API_URL } from '@/lib/constants';
+import { API_URL, AUTH_MODE } from '@/lib/constants';
 import {
   clearTokens,
   getRefreshToken,
@@ -45,7 +45,7 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
     requestHeaders['Content-Type'] = 'application/json';
   }
 
-  if (accessToken) {
+  if (AUTH_MODE === 'direct' && accessToken) {
     requestHeaders.Authorization = `Bearer ${accessToken}`;
   }
 
@@ -53,17 +53,24 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
     requestHeaders['x-tenant-id'] = tenantId;
   }
 
-  let response = await fetch(`${API_URL}${path}`, {
+  const url = AUTH_MODE === 'bff' ? `/api/bff${path}` : `${API_URL}${path}`;
+
+  let response = await fetch(url, {
     method,
     headers: requestHeaders,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 
-  if (response.status === 401 && accessToken && retryOnUnauthorized) {
+  if (
+    AUTH_MODE === 'direct' &&
+    response.status === 401 &&
+    accessToken &&
+    retryOnUnauthorized
+  ) {
     const refreshedToken = await tryRefreshSession();
     if (refreshedToken) {
       requestHeaders.Authorization = `Bearer ${refreshedToken}`;
-      response = await fetch(`${API_URL}${path}`, {
+      response = await fetch(url, {
         method,
         headers: requestHeaders,
         body: body !== undefined ? JSON.stringify(body) : undefined,
