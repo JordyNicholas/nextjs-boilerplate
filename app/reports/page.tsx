@@ -103,16 +103,20 @@ function ReportsContent() {
             reports.data.map((report: ReportItem) => (
               <article
                 key={report.id}
-                className="rounded-xl border border-slate-200 bg-slate-50/80 p-4"
+                className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-700 dark:bg-slate-950/60"
               >
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h3 className="font-medium text-slate-900">{report.title}</h3>
-                    <p className="mt-1 font-mono text-xs text-slate-500">{report.id}</p>
+                    <h3 className="font-medium text-slate-900 dark:text-slate-100">
+                      {report.title}
+                    </h3>
+                    <p className="mt-1 font-mono text-xs text-slate-500 dark:text-slate-400">
+                      {report.id}
+                    </p>
                   </div>
                   <Badge tone={statusTone[report.status]}>{report.status}</Badge>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                   {new Date(report.createdAt).toLocaleString()}
                 </p>
               </article>
@@ -127,7 +131,7 @@ function ReportsContent() {
 
         {reports ? (
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               Page {reports.meta.page} of {reports.meta.totalPages} · {reports.meta.total} total
             </p>
             <div className="flex gap-2">

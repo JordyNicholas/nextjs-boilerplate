@@ -46,20 +46,36 @@ function ProfileContent() {
         {profile ? (
           <dl className="mt-2 grid gap-4">
             <div>
-              <dt className="text-xs uppercase tracking-wide text-slate-500">Name</dt>
-              <dd className="mt-1 font-medium">{profile.name}</dd>
+              <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Name
+              </dt>
+              <dd className="mt-1 font-medium text-slate-900 dark:text-slate-100">
+                {profile.name}
+              </dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-slate-500">Email</dt>
-              <dd className="mt-1 font-medium">{profile.email}</dd>
+              <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Email
+              </dt>
+              <dd className="mt-1 font-medium text-slate-900 dark:text-slate-100">
+                {profile.email}
+              </dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-slate-500">Tenant ID</dt>
-              <dd className="mt-1 break-all font-mono text-sm">{profile.tenantId}</dd>
+              <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Tenant ID
+              </dt>
+              <dd className="mt-1 break-all font-mono text-sm text-slate-700 dark:text-slate-300">
+                {profile.tenantId}
+              </dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-slate-500">User ID</dt>
-              <dd className="mt-1 break-all font-mono text-sm">{profile.id}</dd>
+              <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                User ID
+              </dt>
+              <dd className="mt-1 break-all font-mono text-sm text-slate-700 dark:text-slate-300">
+                {profile.id}
+              </dd>
             </div>
           </dl>
         ) : !error ? <LoadingState label="Loading profile…" /> : null}

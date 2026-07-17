@@ -86,7 +86,7 @@ export default function StatusPage() {
         {health ? (
           <Badge tone={health.status === 'ok' ? 'ok' : 'warn'}>{health.status}</Badge>
         ) : (
-          <p className="text-sm text-slate-500">Loading…</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Loading…</p>
         )}
       </Card>
 
@@ -94,10 +94,12 @@ export default function StatusPage() {
         {ready ? (
           <div className="flex flex-col gap-2">
             <Badge tone={ready.status === 'ready' ? 'ok' : 'error'}>{ready.status}</Badge>
-            {ready.message ? <p className="text-sm text-slate-500">{ready.message}</p> : null}
+            {ready.message ? (
+              <p className="text-sm text-slate-500 dark:text-slate-400">{ready.message}</p>
+            ) : null}
           </div>
         ) : (
-          <p className="text-sm text-slate-500">Loading…</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Loading…</p>
         )}
       </Card>
 
@@ -105,24 +107,40 @@ export default function StatusPage() {
         {metrics ? (
           <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <dt className="text-xs uppercase tracking-wide text-slate-500">Service</dt>
-              <dd className="mt-1 font-medium">{metrics.service}</dd>
+              <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Service
+              </dt>
+              <dd className="mt-1 font-medium text-slate-900 dark:text-slate-100">
+                {metrics.service}
+              </dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-slate-500">Requests</dt>
-              <dd className="mt-1 font-medium">{metrics.totalRequests}</dd>
+              <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Requests
+              </dt>
+              <dd className="mt-1 font-medium text-slate-900 dark:text-slate-100">
+                {metrics.totalRequests}
+              </dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-slate-500">Errors</dt>
-              <dd className="mt-1 font-medium">{metrics.totalErrors}</dd>
+              <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Errors
+              </dt>
+              <dd className="mt-1 font-medium text-slate-900 dark:text-slate-100">
+                {metrics.totalErrors}
+              </dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-slate-500">Uptime</dt>
-              <dd className="mt-1 font-medium">{metrics.uptimeSeconds}s</dd>
+              <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Uptime
+              </dt>
+              <dd className="mt-1 font-medium text-slate-900 dark:text-slate-100">
+                {metrics.uptimeSeconds}s
+              </dd>
             </div>
           </dl>
         ) : (
-          <p className="text-sm text-slate-500">Loading…</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Loading…</p>
         )}
       </Card>
     </div>
