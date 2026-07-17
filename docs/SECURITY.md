@@ -18,7 +18,7 @@ Before using the BFF in production:
 
 - make it the only browser API path;
 - add and document CSRF protection for state-changing requests;
-- validate allowed proxy paths and methods;
+- keep `BFF_ALLOWED_ROUTES` limited to the required proxy paths and methods;
 - forward request IDs and required tenant context;
 - set upstream timeouts;
 - define cookie domain, lifetime and `SameSite` policy;
@@ -31,6 +31,11 @@ an `Origin` header are rejected, so non-browser clients must send one.
 
 `NEXT_PUBLIC_AUTH_MODE` is baked at build time. A production image defaults to
 `bff` and cannot be flipped to `direct` by runtime environment alone.
+
+The catch-all proxy denies routes not listed in `BFF_ALLOWED_ROUTES`. Entries
+use `METHOD:/path`; for example, `GET:/users/me`. A trailing `/*` explicitly
+allows descendants. Prefer exact entries and update the allowlist when adding
+product endpoints.
 
 Do not mix direct bearer-token and cookie-authenticated calls in one production
 session.

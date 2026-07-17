@@ -12,6 +12,7 @@ only public configuration. Keep secrets and internal credentials server-only.
 | `NEXT_PUBLIC_DEFAULT_TENANT_ID` | seeded demo UUID | replace with product tenancy |
 | `NEXT_PUBLIC_AUTH_MODE` | `direct` for learning or `bff` | `bff` recommended |
 | `BFF_ALLOWED_ORIGINS` | local app origin | explicit deployed app origins |
+| `BFF_ALLOWED_ROUTES` | included demo endpoints | minimum product API routes |
 | `OPENAPI_SOURCE` | sibling contract file | CI artifact or released contract |
 
 ## Build-time configuration
@@ -20,11 +21,13 @@ only public configuration. Keep secrets and internal credentials server-only.
 environments that need different public values, or move runtime routing behind
 server-only configuration.
 
-`BACKEND_API_URL`, `BFF_ALLOWED_ORIGINS` and `OPENAPI_SOURCE` are not browser-exposed:
+`BACKEND_API_URL`, `BFF_ALLOWED_ORIGINS`, `BFF_ALLOWED_ROUTES` and
+`OPENAPI_SOURCE` are not browser-exposed:
 
 - `BACKEND_API_URL` is the BFF's server-only upstream and may use private networking.
 - `BFF_ALLOWED_ORIGINS` is read at request time by route handlers. Include the
   public HTTPS origin when Next.js sits behind a TLS-terminating proxy.
+- `BFF_ALLOWED_ROUTES` limits the catch-all proxy to explicit method/path pairs.
 - `OPENAPI_SOURCE` is tooling-only and used by `npm run api:sync`.
 
 `NEXT_PUBLIC_AUTH_MODE` is evaluated at `next build`. Production builds default

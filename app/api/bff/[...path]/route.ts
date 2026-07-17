@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { BACKEND_API_URL } from '@/lib/api/serverConfig';
+import { isBffRouteAllowed } from '@/lib/api/bffProxyPolicy';
+import {
+  BACKEND_API_URL,
+  BFF_ALLOWED_ROUTES,
+} from '@/lib/api/serverConfig';
 import {
   ACCESS_COOKIE,
   REFRESH_COOKIE,
@@ -8,6 +12,10 @@ import {
 import { rejectUntrustedMutation } from '@/lib/auth/csrf';
 
 async function proxy(request: NextRequest, path: string[]) {
+  if (!isBffRouteAllowed(request.method, path, BFF_ALLOWED_ROUTES)) {
+    return NextResponse.json({ message: 'BFF route is not allowed' }, { status: 404 });
+  }
+
   try {
     return await proxyUpstream(request, path);
   } catch {
@@ -27,9 +35,10 @@ async function proxyUpstream(request: NextRequest, path: string[]) {
   const search = request.nextUrl.search;
   const tenantId = request.headers.get('x-tenant-id');
   const requestId = request.headers.get('x-request-id') ?? crypto.randomUUID();
+  const upstreamPath = path.map(encodeURIComponent).join('/');
 
   const send = (token?: string) =>
-    fetch(`${BACKEND_API_URL}/${path.join('/')}${search}`, {
+    fetch(`${BACKEND_API_URL}/${upstreamPath}${search}`, {
       method: request.method,
       headers: {
         accept: 'application/json',
