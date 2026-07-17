@@ -101,6 +101,7 @@ openapi/          # Committed backend contract snapshot
 | `NEXT_PUBLIC_DEFAULT_TENANT_ID` | seeded UUID | Sent as `x-tenant-id` on register/login |
 | `NEXT_PUBLIC_AUTH_MODE` | direct in dev, BFF in production | Browser session model: `direct` or `bff` |
 | `BFF_ALLOWED_ORIGINS` | current application origin | Server-only CSRF origin allowlist |
+| `BFF_ALLOWED_ROUTES` | included demo endpoints | Server-only proxy method/path allowlist |
 | `OPENAPI_SOURCE` | sibling backend contract | File path or HTTP(S) contract source |
 
 ## Scripts
@@ -153,7 +154,8 @@ Production defaults to `NEXT_PUBLIC_AUTH_MODE=bff`. This uses:
 
 These route handlers keep access and refresh tokens in httpOnly cookies, enforce
 same-origin mutations, forward request IDs and tenant context, rotate sessions,
-and apply upstream timeouts. Configure `BFF_ALLOWED_ORIGINS` and read
+apply upstream timeouts, and reject routes outside `BFF_ALLOWED_ROUTES`. Configure
+the BFF allowlists and read
 [`docs/SECURITY.md`](docs/SECURITY.md) before deployment.
 
 ## UX behaviors
