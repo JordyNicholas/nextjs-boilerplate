@@ -1,7 +1,7 @@
 'use client';
 
 import { useTheme } from 'next-themes';
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { Button } from '@/components/ui/Button';
 
 export function ThemeToggle() {
@@ -11,6 +11,14 @@ export function ThemeToggle() {
     () => true,
     () => false,
   );
+
+  useEffect(() => {
+    if (!resolvedTheme) return;
+
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', resolvedTheme === 'dark' ? '#020617' : '#f8fafc');
+  }, [resolvedTheme]);
 
   return (
     <Button
